@@ -1,0 +1,129 @@
+---
+title: 'Motor Trend: Which is better for mpg: Automatic or Manual Transmission?'
+author: "Pankaj Goyal"
+date: "Tuesday, July 22, 2014"
+output: pdf_document
+---
+
+### Summary
+We have performed a set of regression test to study the relation between the type of transmission and the MPG on cars. We found that the number of cylinders, weight have the most significant effects on the MPG. Meanwhile, for smaller cylinders and weight, we found that the manual transmission has better MPG than automatic transmission when taking the most important effects into account. However, the overall difference is negligible. Therefore, the type of transmission is not the key variable that can significantly affact the mpg.
+
+### Data Analysis
+Read in data and perform exploaratory analysis:
+
+```{r}
+data(mtcars)
+str(mtcars)
+summary(mtcars)
+```
+
+.1.Coercing "cyl", "vs", "gear", "carb" and "am" variables into factor variables.
+
+```{r}
+mtcars$cyl  <-  factor(mtcars$cyl)
+mtcars$vs   <-  factor(mtcars$vs)
+mtcars$gear <-  factor(mtcars$gear)
+mtcars$carb <-  factor(mtcars$carb)
+mtcars$am   <-  factor(mtcars$am)
+```
+
+.2.Rename the levels of the "am" variable into "Auto" and "Manual".
+```{r}
+levels(mtcars$am) <- c("Auto", "Manual")
+```
+
+### Graphics
+We begin by plotting boxplots of the variable "mpg" when "am" is "Auto" or "Manual" (see Figure 1 in the appendix).
+
+This plot hints at an increase in mpg when gearing was manual but this data may have other variables which may play a bigger role in determination of mpg.
+
+We then plot the relationships between all the variables of the dataset (see Figure 2 in the appendix).
+
+We may note that variables like "cyl", "disp", "hp", "drat", "wt", "vs" and "am" seem highly correlated to "mpg".
+
+### Inference
+We may also run a some tests to compare the mpg means between automatic and manual transmissions.
+
+#### T-test
+We begin by using a t-test assuming that the mileage data has a normal distribution.
+
+```{r}
+t.test(mpg ~ am, data = mtcars)
+```
+
+The test results clearly shows that the manual and automatic transmissions are significatively different.
+
+#### Wilcoxon test
+Determine if there's a difference in the population means.
+
+```{r, warning=FALSE}
+wilcox.test(mpg ~ am, data = mtcars)
+```
+
+The Wilcoxon test also rejects the null hypothesis that the mileage data of the manual and automatic transmissions are from the same population (indicating a difference).
+
+### Regression analysis
+First we need to select a model, we proceed by using AIC in a stepwise algorithm.
+
+```{r,results='hide'}
+model.all <- lm(mpg ~ ., data = mtcars)
+model <- step(model.all, direction = "both")
+summary(model)
+```
+
+The AIC algorithm tells us to consider "cyl", "wt" and "hp" as confounding variables. The individual p-values allows us to reject the hypothesis that the coefiicients are null. The adjusted r-squared is 0.8401, so we may conclude that more than 84% of the variation is explained by the model.
+
+```{r}
+model0 <- lm(mpg ~ am, data = mtcars)
+anova(model0, model)
+```
+
+We may notice that when we compare the model with only "am" as independant variable and our chosen model, we reject the null hypothesis that the variables "cyl", "hp" and "wt" don't contribute to the accuracy of the model.
+
+The regression suggests that, other variables remaining constant, manual transmitted cars can drive 1.8092 more miles per gallon than automatic transmitted cars, and the results are not statistically significant.
+
+### Residuals and diagnostics
+
+#### Residual analysis
+We begin by studying the residual plots (see Figure 3 in the appendix). These plots allow us to verify some assumptions made before.
+
+.1.The Residuals vs Fitted plot seem to verify the independance assumption as the points are randomly scattered on the plot.
+.2.The Normal Q-Q plot seem to indicate that the residuals are normally distributed as the points hug the line closely.
+.3.The Scale-Location plot seem to verify the constant variance assumption as the points fall in a constant band.
+    
+#### Dfbetas
+Next we look at the Dfbetas of the observations.
+
+```{r}
+influential <- dfbetas(model)
+```
+
+Are any of the observations in the dataset influential ? We find the influential observations by selecting the ones with a dfbeta > 1 in magnitude.
+
+```{r}
+influential[which(abs(influential) > 1)]
+```
+### Conclusion
+While a subtle relationship exists between am and mpg, this is insignificant and we cannot concluded that shifting from automatic to manual gearing will result in a car which gives better mileage. The reader is encourage to consider the car's weight and number of cylinders instead to determine the mileage of the vehicle. 
+
+### Appendix
+
+#### Figure 1 : Boxplots of "mpg" vs. "am"
+
+```{r}
+plot(mpg ~ am, data = mtcars, main = "Mpg by transmission type", 
+     xlab = "Transmission type", ylab = "Miles per gallon")
+```
+
+#### Figure 2 : Pairs graph
+
+```{r}
+pairs(mtcars, panel = panel.smooth, main = "Pairs graph for MTCars")
+```
+
+#### Figure 3 : Residual plots
+
+```{r}
+par(mfrow = c(2, 2))
+plot(model)
+```
