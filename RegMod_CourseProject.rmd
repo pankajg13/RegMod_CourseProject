@@ -110,20 +110,20 @@ While a subtle relationship exists between am and mpg, this is insignificant and
 
 #### Figure 1 : Boxplots of "mpg" vs. "am"
 
-```{r}
+```{r fig.width=5, fig.height=4}
 plot(mpg ~ am, data = mtcars, main = "Mpg by transmission type", 
      xlab = "Transmission type", ylab = "Miles per gallon")
 ```
 
 #### Figure 2 : Pairs graph
 
-```{r}
+```{r fig.width=6, fig.height=5}
 pairs(mtcars, panel = panel.smooth, main = "Pairs graph for MTCars")
 ```
 
 #### Figure 3 : Residual plots
 
-```{r}
+```{r fig.width=6, fig.height=5}
 par(mfrow = c(2, 2))
 plot(model)
 ```
